@@ -144,6 +144,11 @@ textarea {
   cursor: pointer;
 }
 
+.button-full:disabled {
+  cursor: wait;
+  opacity: 0.82;
+}
+
 .hero,
 .services,
 .booking,
@@ -439,6 +444,25 @@ h3 {
 .form-group textarea:focus {
   border-color: var(--secondary);
   box-shadow: 0 0 0 4px rgba(124, 77, 255, 0.12);
+}
+
+.form-status {
+  min-height: 1.5rem;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.form-status[data-state="loading"] {
+  color: var(--primary-dark);
+}
+
+.form-status[data-state="success"] {
+  color: #1d7d4d;
+}
+
+.form-status[data-state="error"] {
+  color: #b23939;
 }
 
 .contact-grid {

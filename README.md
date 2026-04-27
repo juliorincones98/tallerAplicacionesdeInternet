@@ -1,36 +1,205 @@
 # Veterinaria San Francisco
 
-Sitio web responsive para un sistema de reserva de horas de una veterinaria, desarrollado con HTML5 y CSS3.
+Sistema web de reserva de horas para una veterinaria. El proyecto comenzo como una interfaz estatica en HTML y CSS, y evoluciono a una aplicacion funcional con backend en TypeScript, API REST y conexion a base de datos en Supabase.
 
-## Descripcion
+## Estado del proyecto
 
-La pagina fue disenada para la Veterinaria San Francisco con una identidad visual basada en tonos azules y purpuras. Incluye una estructura semantica clara, secciones informativas, formulario de reserva y adaptacion a dispositivos moviles.
+![Frontend](https://img.shields.io/badge/frontend-HTML%20%2B%20CSS-blue)
+![Backend](https://img.shields.io/badge/backend-TypeScript%20%2B%20Express-3178c6)
+![Database](https://img.shields.io/badge/database-Supabase-3ecf8e)
+![Validation](https://img.shields.io/badge/validation-Zod-f59e0b)
 
-## Tecnologias
+## Resumen
+
+Esta version ya incluye:
+
+- interfaz de reserva responsive
+- backend en `Node.js + Express + TypeScript`
+- arquitectura por capas
+- validacion de datos en servidor
+- persistencia de reservas en `Supabase`
+- configuracion segura mediante variables de entorno
+
+El formulario ya envia una solicitud real al backend y el backend puede registrar la reserva en la base de datos.
+
+## Nuevas capacidades agregadas
+
+Para pasar de una maqueta visual a una aplicacion funcional se incorporaron dos bloques principales:
+
+1. Backend en TypeScript para manejar reglas de negocio y exponer endpoints.
+2. Conexion a Supabase para almacenar las reservas en PostgreSQL.
+
+Con esto, el sistema dejo de ser solo visual y paso a tener flujo completo de reserva.
+
+## Stack tecnologico
 
 - HTML5
 - CSS3
+- JavaScript
+- Node.js
+- Express
+- TypeScript
+- Supabase
+- PostgreSQL
+- Zod
+
+## Arquitectura
+
+El backend se organizo siguiendo una estructura por capas, pensada para ser clara, mantenible y facil de escalar.
+
+- `src/routes`
+  Registro de rutas HTTP.
+- `src/modules/bookings/bookings.controller.ts`
+  Traduce requests y responses.
+- `src/modules/bookings/bookings.service.ts`
+  Contiene la logica de negocio del modulo de reservas.
+- `src/modules/bookings/bookings.repository.ts`
+  Encapsula el acceso a Supabase.
+- `src/modules/bookings/bookings.validation.ts`
+  Valida el payload antes de persistirlo.
+- `src/config`
+  Centraliza configuraciones del entorno.
+- `src/lib`
+  Aloja servicios compartidos, incluyendo el cliente de Supabase.
 
 ## Estructura del proyecto
 
-- `index.html`: pagina principal del sistema de reserva.
-- `styles.css`: estilos visuales y reglas responsive.
-- `assets/logo-veterinaria.avif`: logotipo utilizado en la cabecera.
-
-## Como visualizar el proyecto
-
-Puedes abrir el archivo `index.html` directamente en tu navegador o ejecutar en PowerShell:
-
-```powershell
-start index.html
+```text
+tallerAplicacionesdeInternet/
+|- assets/
+|- src/
+|  |- config/
+|  |- lib/
+|  |- modules/
+|  |  |- bookings/
+|  |- routes/
+|  |- app.ts
+|  |- server.ts
+|- supabase/
+|  |- bookings-schema.sql
+|- index.html
+|- styles.css
+|- main.js
+|- package.json
+|- tsconfig.json
+|- .env.example
+|- .gitignore
 ```
 
-Si usas Visual Studio Code, tambien puedes abrirlo con la extension Live Server.
+## Variables de entorno
 
-## Caracteristicas principales
+Debes crear un archivo `.env` local a partir de `.env.example`.
 
-- Diseno responsive para celular
-- Formulario de reserva de horas
-- Secciones de servicios, contacto y horarios
-- Footer con informacion legal y autoria
-- Integracion del logo institucional
+Ejemplo:
+
+```env
+PORT=3000
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_ANON_KEY=tu-clave-anon
+SUPABASE_SERVICE_ROLE_KEY=tu-clave-service-role
+```
+
+## Configuracion de Supabase
+
+1. Crea un proyecto en Supabase.
+2. Ve a `Project Settings > API`.
+3. Copia `SUPABASE_URL`, `anon key` y `service_role key`.
+4. Pegalos en tu archivo `.env`.
+5. Abre el `SQL Editor`.
+6. Ejecuta el script ubicado en `supabase/bookings-schema.sql`.
+
+Tabla usada actualmente:
+
+- `public.bookings`
+
+Esta tabla almacena:
+
+- nombre del tutor
+- nombre de la mascota
+- tipo de mascota
+- servicio solicitado
+- fecha y hora de la cita
+- telefono de contacto
+- observaciones
+- estado de la reserva
+
+## Ejecucion local
+
+1. Instala dependencias:
+
+```powershell
+npm install
+```
+
+2. Verifica que TypeScript compile correctamente:
+
+```powershell
+npm run check
+```
+
+3. Inicia el servidor de desarrollo:
+
+```powershell
+npm run dev
+```
+
+4. Abre la aplicacion en:
+
+```text
+http://localhost:3000
+```
+
+## Endpoints disponibles
+
+- `GET /api/health`
+  Comprueba que el servidor este operativo.
+- `POST /api/bookings`
+  Registra una nueva solicitud de reserva.
+
+## Ejemplo de payload
+
+```json
+{
+  "ownerName": "Camila Soto",
+  "petName": "Luna",
+  "petType": "Perro",
+  "service": "Consulta general",
+  "appointmentDate": "2026-04-30",
+  "appointmentTime": "10:30",
+  "phone": "+56 9 1234 5678",
+  "notes": "Primera visita"
+}
+```
+
+## Seguridad
+
+Se aplicaron buenas practicas basicas para evitar exponer informacion sensible:
+
+- `.env` no debe subirse a GitHub.
+- `.env.example` documenta variables sin incluir secretos reales.
+- `SUPABASE_SERVICE_ROLE_KEY` se usa solo en el backend.
+- `node_modules` y `dist` estan ignorados por Git.
+- La validacion con Zod filtra datos invalidos antes de llegar a la base de datos.
+- La logica de acceso a datos esta encapsulada y no expone credenciales al navegador.
+
+## Recomendaciones antes de publicar
+
+- Revisa que `.env` este efectivamente ignorado por Git.
+- Si una llave fue expuesta por error, rotala desde Supabase.
+- Nunca uses `SUPABASE_SERVICE_ROLE_KEY` en el frontend.
+- Si el proyecto crece, agrega autenticacion, autorizacion y manejo de auditoria para acciones administrativas.
+
+## Roadmap
+
+Siguientes mejoras sugeridas:
+
+- listado de reservas
+- panel administrativo
+- autenticacion de usuarios
+- confirmacion de horas
+- cancelacion y reprogramacion de reservas
+- disponibilidad dinamica por bloques horarios
+
+## Autor
+
+Proyecto academico y de practica orientado a evolucionar una landing page en una aplicacion web con backend y persistencia real.

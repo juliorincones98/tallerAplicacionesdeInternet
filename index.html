@@ -127,18 +127,18 @@
         <form class="booking-form">
           <div class="form-group">
             <label for="nombre-dueno">Nombre del tutor</label>
-            <input id="nombre-dueno" name="nombre-dueno" type="text" placeholder="Ej: Camila Soto">
+            <input id="nombre-dueno" name="nombre-dueno" type="text" placeholder="Ej: Camila Soto" required>
           </div>
 
           <div class="form-group">
             <label for="nombre-mascota">Nombre de la mascota</label>
-            <input id="nombre-mascota" name="nombre-mascota" type="text" placeholder="Ej: Luna">
+            <input id="nombre-mascota" name="nombre-mascota" type="text" placeholder="Ej: Luna" required>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="tipo">Tipo de mascota</label>
-              <select id="tipo" name="tipo">
+              <select id="tipo" name="tipo" required>
                 <option value="">Selecciona</option>
                 <option>Perro</option>
                 <option>Gato</option>
@@ -148,7 +148,7 @@
 
             <div class="form-group">
               <label for="servicio">Servicio</label>
-              <select id="servicio" name="servicio">
+              <select id="servicio" name="servicio" required>
                 <option value="">Selecciona</option>
                 <option>Consulta general</option>
                 <option>Vacunación</option>
@@ -160,18 +160,18 @@
           <div class="form-row">
             <div class="form-group">
               <label for="fecha">Fecha</label>
-              <input id="fecha" name="fecha" type="date">
+              <input id="fecha" name="fecha" type="date" required>
             </div>
 
             <div class="form-group">
               <label for="hora">Hora</label>
-              <input id="hora" name="hora" type="time">
+              <input id="hora" name="hora" type="time" required>
             </div>
           </div>
 
           <div class="form-group">
             <label for="telefono">Telefono de contacto</label>
-            <input id="telefono" name="telefono" type="tel" placeholder="+56 9 1234 5678">
+            <input id="telefono" name="telefono" type="tel" placeholder="+56 9 1234 5678" required>
           </div>
 
           <div class="form-group">
@@ -187,6 +187,7 @@
           <button class="button button-primary button-full" type="submit">
             Confirmar solicitud
           </button>
+          <p class="form-status" data-form-status aria-live="polite"></p>
         </form>
       </div>
     </section>
@@ -232,5 +233,6 @@
       <p>Pagina creada por Liones Entrerprise</p>
     </div>
   </footer>
+  <script src="main.js"></script>
 </body>
 </html>
