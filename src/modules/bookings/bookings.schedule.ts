@@ -1,3 +1,5 @@
+import type { SERVICES } from "./bookings.constants.js";
+
 const SLOT_DURATION_MINUTES = 40;
 
 type DailySchedule = {
@@ -10,7 +12,9 @@ type ServiceSchedule = {
   saturday: DailySchedule | null;
 };
 
-const SERVICE_SCHEDULES: Record<string, ServiceSchedule> = {
+type ServiceName = (typeof SERVICES)[number];
+
+const SERVICE_SCHEDULES: Record<ServiceName, ServiceSchedule> = {
   "Consulta general": {
     weekday: {
       start: "09:00",
@@ -57,7 +61,7 @@ const toTimeLabel = (totalMinutes: number): string => {
 export const getScheduleForDate = (date: string, service: string): DailySchedule | null => {
   const [year, month, day] = date.split("-").map(Number);
   const weekDay = new Date(year, month - 1, day).getDay();
-  const serviceSchedule = SERVICE_SCHEDULES[service];
+  const serviceSchedule = SERVICE_SCHEDULES[service as ServiceName];
 
   if (!serviceSchedule) {
     return null;

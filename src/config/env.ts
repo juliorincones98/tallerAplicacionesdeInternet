@@ -5,6 +5,9 @@ dotenv.config();
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
+  ALLOWED_ORIGINS: z.string().min(1),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900000),
+  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(20),
   SUPABASE_URL: z.url(),
   SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1)
@@ -18,3 +21,6 @@ if (!parsedEnv.success) {
 }
 
 export const env = parsedEnv.data;
+export const allowedOrigins = env.ALLOWED_ORIGINS.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);

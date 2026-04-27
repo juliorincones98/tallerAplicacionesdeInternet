@@ -21,6 +21,7 @@ Esta version ya incluye:
 - reservas en bloques de 40 minutos
 - validacion de horas ocupadas y fechas pasadas
 - disponibilidad separada por motivo de consulta
+- endurecimiento basico de seguridad para la API
 - configuracion segura mediante variables de entorno
 
 El formulario ya envia una solicitud real al backend y el backend puede registrar la reserva en la base de datos.
@@ -122,10 +123,22 @@ Ejemplo:
 
 ```env
 PORT=3000
+ALLOWED_ORIGINS=http://localhost:3000
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=20
 SUPABASE_URL=https://tu-proyecto.supabase.co
 SUPABASE_ANON_KEY=tu-clave-anon
 SUPABASE_SERVICE_ROLE_KEY=tu-clave-service-role
 ```
+
+Variables nuevas de seguridad:
+
+- `ALLOWED_ORIGINS`
+  Lista de origenes permitidos para CORS, separados por coma.
+- `RATE_LIMIT_WINDOW_MS`
+  Ventana de tiempo del limitador de peticiones en milisegundos.
+- `RATE_LIMIT_MAX_REQUESTS`
+  Numero maximo de solicitudes permitidas por ventana para la API.
 
 ## Configuracion de Supabase
 
@@ -212,12 +225,18 @@ Se aplicaron buenas practicas basicas para evitar exponer informacion sensible:
 - La validacion con Zod filtra datos invalidos antes de llegar a la base de datos.
 - La logica de acceso a datos esta encapsulada y no expone credenciales al navegador.
 - La unicidad de reservas debe considerarse por `fecha + hora + servicio`.
+- `CORS` se restringe a origenes configurados en `ALLOWED_ORIGINS`.
+- La API usa `rate limiting` para reducir abuso automatizado.
+- El cuerpo JSON esta limitado para evitar cargas excesivas.
+- `service` y `petType` se validan contra listas permitidas.
+- `phone` y `notes` ahora tienen validaciones mas estrictas.
 
 ## Recomendaciones antes de publicar
 
 - Revisa que `.env` este efectivamente ignorado por Git.
 - Si una llave fue expuesta por error, rotala desde Supabase.
 - Nunca uses `SUPABASE_SERVICE_ROLE_KEY` en el frontend.
+- Ajusta `ALLOWED_ORIGINS` segun tu dominio real antes de desplegar.
 - Si el proyecto crece, agrega autenticacion, autorizacion y manejo de auditoria para acciones administrativas.
 
 ## Roadmap
