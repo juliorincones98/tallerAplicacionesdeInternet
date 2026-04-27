@@ -4,6 +4,7 @@ import { BookingsRepository } from "../bookings/bookings.repository.js";
 export class AdminService {
   constructor(private readonly bookingsRepository: BookingsRepository) {}
 
+  // El panel admin lista solo reservas activas para enfocar la operacion diaria.
   async listScheduledBookings(): Promise<Booking[]> {
     return this.bookingsRepository.listScheduled();
   }

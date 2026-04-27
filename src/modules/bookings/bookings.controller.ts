@@ -7,6 +7,7 @@ import { bookingAvailabilitySchema, createBookingSchema } from "./bookings.valid
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
+  // Recibe la reserva publica, valida formato HTTP y delega reglas al servicio.
   create = async (request: Request, response: Response): Promise<void> => {
     const parsedBody = createBookingSchema.safeParse(request.body);
 
@@ -46,6 +47,7 @@ export class BookingsController {
     }
   };
 
+  // Devuelve disponibilidad para que el frontend arme el selector de bloques libres.
   getAvailability = async (request: Request, response: Response): Promise<void> => {
     const parsedQuery = bookingAvailabilitySchema.safeParse(request.query);
 

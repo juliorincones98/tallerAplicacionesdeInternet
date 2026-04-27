@@ -4,6 +4,7 @@ import { BookingConflictError, BookingValidationError } from "./bookings.errors.
 import { BookingsRepository } from "./bookings.repository.js";
 import { getAvailableTimeSlotsForDate, isValidTimeSlotForDate } from "./bookings.schedule.js";
 
+// Convierte fecha+hora en un Date local para comparar con el momento actual del servidor.
 const buildLocalAppointmentDate = (date: string, time: string): Date => {
   const [year, month, day] = date.split("-").map(Number);
   const [hours, minutes] = time.split(":").map(Number);
@@ -14,6 +15,7 @@ const buildLocalAppointmentDate = (date: string, time: string): Date => {
 export class BookingsService {
   constructor(private readonly bookingsRepository: BookingsRepository) {}
 
+  // Aplica las reglas de negocio de reservas antes de escribir en la base de datos.
   async createBooking(input: CreateBookingDto): Promise<Booking> {
     const appointmentDate = buildLocalAppointmentDate(input.appointmentDate, input.appointmentTime);
     const now = new Date();
@@ -44,6 +46,7 @@ export class BookingsService {
     });
   }
 
+  // Combina la agenda teorica del servicio con las horas ocupadas guardadas en base de datos.
   async getAvailability(input: BookingAvailabilityDto): Promise<BookingAvailability> {
     const occupiedTimes = await this.bookingsRepository.listOccupiedTimesByDate(input.date, input.service);
     const availableTimes = getAvailableTimeSlotsForDate(input.date, input.service);

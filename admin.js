@@ -9,11 +9,13 @@ const adminCount = document.querySelector("[data-admin-count]");
 const refreshButton = document.querySelector("[data-admin-refresh]");
 const logoutButton = document.querySelector("[data-admin-logout]");
 
+// Formato breve pensado para lectura operativa dentro del panel.
 const formatDate = (date) => {
   const [year, month, day] = date.split("-");
   return `${day}/${month}/${year}`;
 };
 
+// Alterna entre login y dashboard segun el estado de autenticacion.
 const setAuthView = (authenticated) => {
   if (authSection instanceof HTMLElement) {
     authSection.hidden = authenticated;
@@ -24,6 +26,7 @@ const setAuthView = (authenticated) => {
   }
 };
 
+// Unifica mensajes de carga, exito y error del panel admin.
 const setStatusMessage = (element, message, state = "") => {
   if (!(element instanceof HTMLElement)) {
     return;
@@ -33,6 +36,7 @@ const setStatusMessage = (element, message, state = "") => {
   element.dataset.state = state;
 };
 
+// Renderiza la tabla operativa y una fila vacia cuando no hay reservas.
 const renderBookings = (bookings) => {
   if (!(bookingsBody instanceof HTMLElement)) {
     return;
@@ -67,6 +71,7 @@ const renderBookings = (bookings) => {
   }
 };
 
+// Carga el listado protegido de reservas para el dashboard.
 const loadBookings = async () => {
   setStatusMessage(tableStatus, "Cargando reservas...", "loading");
 
@@ -93,6 +98,7 @@ const loadBookings = async () => {
   }
 };
 
+// Intenta restaurar una sesion existente leyendo el estado desde backend.
 const restoreSession = async () => {
   try {
     const response = await fetch("/api/admin/session", {
@@ -119,6 +125,7 @@ const restoreSession = async () => {
 };
 
 if (loginForm instanceof HTMLFormElement) {
+  // El login se resuelve en backend para no exponer credenciales ni logica de sesion.
   loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -174,12 +181,14 @@ if (loginForm instanceof HTMLFormElement) {
 }
 
 if (refreshButton instanceof HTMLButtonElement) {
+  // Permite refrescar reservas sin recargar toda la pagina.
   refreshButton.addEventListener("click", async () => {
     await loadBookings();
   });
 }
 
 if (logoutButton instanceof HTMLButtonElement) {
+  // Tras cerrar sesion, se limpia la UI local aunque la cookie ya se invalida en backend.
   logoutButton.addEventListener("click", async () => {
     await fetch("/api/admin/logout", {
       method: "POST",
@@ -204,4 +213,5 @@ if (logoutButton instanceof HTMLButtonElement) {
   });
 }
 
+// Punto de entrada del panel admin.
 restoreSession();

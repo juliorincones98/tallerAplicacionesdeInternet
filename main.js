@@ -14,6 +14,7 @@ const timeInput = bookingForm instanceof HTMLFormElement
   ? bookingForm.querySelector("#hora")
   : null;
 
+// Se usa para impedir seleccionar fechas anteriores al dia actual.
 const getTodayString = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -23,6 +24,7 @@ const getTodayString = () => {
   return `${year}-${month}-${day}`;
 };
 
+// Permite filtrar bloques pasados cuando la reserva se hace para hoy.
 const getCurrentTimeString = () => {
   const now = new Date();
   const hours = `${now.getHours()}`.padStart(2, "0");
@@ -31,6 +33,7 @@ const getCurrentTimeString = () => {
   return `${hours}:${minutes}`;
 };
 
+// Reinicia el selector cuando aun no hay suficiente contexto para mostrar horas validas.
 const disableTimeSelect = (placeholder) => {
   if (!(timeInput instanceof HTMLSelectElement)) {
     return;
@@ -45,6 +48,7 @@ const disableTimeSelect = (placeholder) => {
   timeInput.disabled = true;
 };
 
+// Pinta unicamente los bloques reservables para la fecha y servicio seleccionados.
 const fillTimeSelect = (timeOptions) => {
   if (!(timeInput instanceof HTMLSelectElement)) {
     return;
@@ -67,6 +71,7 @@ const fillTimeSelect = (timeOptions) => {
   timeInput.disabled = timeOptions.length === 0;
 };
 
+// Defensa de frontend; el backend repite esta validacion como fuente de verdad.
 const isPastAppointment = (date, time) => {
   if (!date || !time) {
     return false;
@@ -79,6 +84,7 @@ const isPastAppointment = (date, time) => {
   return appointmentDate.getTime() <= Date.now();
 };
 
+// Ajusta la fecha minima reservable en el navegador.
 const updateMinimumDateTime = () => {
   if (!(dateInput instanceof HTMLInputElement)) {
     return;
@@ -88,6 +94,7 @@ const updateMinimumDateTime = () => {
   dateInput.min = today;
 };
 
+// Mensajes de apoyo para explicar disponibilidad u ocupacion al usuario final.
 const renderAvailability = (date, service, occupiedTimes = [], availableTimes = []) => {
   if (!(availabilityStatus instanceof HTMLElement)) {
     return;
@@ -115,6 +122,7 @@ const renderAvailability = (date, service, occupiedTimes = [], availableTimes = 
   availabilityStatus.dataset.state = "warning";
 };
 
+// Consulta al backend la disponibilidad real y sincroniza el selector de horas.
 const loadAvailability = async () => {
   if (!(dateInput instanceof HTMLInputElement) || !(serviceInput instanceof HTMLSelectElement)) {
     return [];
@@ -187,6 +195,7 @@ const loadAvailability = async () => {
 };
 
 if (bookingForm instanceof HTMLFormElement && formStatus instanceof HTMLElement) {
+  // Cada servicio tiene agenda propia, por eso al cambiarlo recalculamos bloques.
   if (serviceInput instanceof HTMLSelectElement) {
     serviceInput.addEventListener("change", async () => {
       if (timeInput instanceof HTMLSelectElement) {
@@ -197,6 +206,7 @@ if (bookingForm instanceof HTMLFormElement && formStatus instanceof HTMLElement)
     });
   }
 
+  // La fecha redefine disponibilidad y tambien filtra bloques ya vencidos si es hoy.
   if (dateInput instanceof HTMLInputElement) {
     dateInput.addEventListener("change", async () => {
       if (timeInput instanceof HTMLSelectElement) {
@@ -216,6 +226,7 @@ if (bookingForm instanceof HTMLFormElement && formStatus instanceof HTMLElement)
   updateMinimumDateTime();
   disableTimeSelect("Selecciona un servicio primero");
 
+  // El submit usa validaciones tempranas en cliente, pero la validacion final vive en backend.
   bookingForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 

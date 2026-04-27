@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { PET_TYPES, SERVICES } from "./bookings.constants.js";
 
+// Valida la entrada publica del formulario antes de aplicar reglas de negocio.
 export const createBookingSchema = z.object({
   ownerName: z.string().trim().min(3, "El nombre del tutor debe tener al menos 3 caracteres."),
   petName: z.string().trim().min(2, "El nombre de la mascota debe tener al menos 2 caracteres."),
@@ -23,6 +24,7 @@ export const createBookingSchema = z.object({
 
 export type CreateBookingDto = z.infer<typeof createBookingSchema>;
 
+// Valida las consultas del selector de disponibilidad por fecha y servicio.
 export const bookingAvailabilitySchema = z.object({
   date: z.iso.date("Debes indicar una fecha valida."),
   service: z.enum(SERVICES, "Debes indicar un servicio valido.")

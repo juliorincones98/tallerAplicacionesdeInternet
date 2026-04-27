@@ -23,6 +23,7 @@ Esta version ya incluye:
 - disponibilidad separada por motivo de consulta
 - endurecimiento basico de seguridad para la API
 - panel administrativo con login para revisar reservas
+- comentarios funcionales orientados a mantenimiento en equipo
 - configuracion segura mediante variables de entorno
 
 El formulario ya envia una solicitud real al backend y el backend puede registrar la reserva en la base de datos.
@@ -108,6 +109,19 @@ El backend se organizo siguiendo una estructura por capas, pensada para ser clar
   Centraliza configuraciones del entorno.
 - `src/lib`
   Aloja servicios compartidos, incluyendo el cliente de Supabase.
+
+## Mantenibilidad del codigo
+
+El codigo fuente incluye comentarios funcionales en los puntos de mantenimiento mas importantes para facilitar trabajo colaborativo, onboarding y futuras modificaciones.
+
+Las anotaciones estan concentradas especialmente en:
+
+- configuracion y arranque de la aplicacion
+- validaciones de entrada
+- reglas de negocio de reservas
+- acceso a base de datos
+- autenticacion y proteccion del panel admin
+- logica de frontend para reservas y administracion
 
 ## Estructura del proyecto
 

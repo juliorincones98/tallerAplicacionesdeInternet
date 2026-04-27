@@ -33,6 +33,7 @@ const toDomain = (row: BookingRow): Booking => ({
 });
 
 export class BookingsRepository {
+  // Consulta las reservas activas para poblar el panel administrativo.
   async listScheduled(): Promise<Booking[]> {
     const { data, error } = await supabase
       .from(TABLE_NAME)
@@ -48,6 +49,7 @@ export class BookingsRepository {
     return (data ?? []).map((row) => toDomain(row as BookingRow));
   }
 
+  // Busca si ya existe una reserva activa para la misma fecha, hora y servicio.
   async findByDateAndTime(
     appointmentDate: string,
     appointmentTime: string,
@@ -69,6 +71,7 @@ export class BookingsRepository {
     return data ? toDomain(data) : null;
   }
 
+  // Obtiene las horas ya ocupadas de un servicio en una fecha concreta.
   async listOccupiedTimesByDate(appointmentDate: string, service: string): Promise<string[]> {
     const { data, error } = await supabase
       .from(TABLE_NAME)
@@ -85,6 +88,7 @@ export class BookingsRepository {
     return (data ?? []).map((row) => String(row.appointment_time).slice(0, 5));
   }
 
+  // Inserta una nueva reserva en Supabase.
   async create(data: CreateBookingInput): Promise<Booking> {
     const { data: createdBooking, error } = await supabase
       .from(TABLE_NAME)

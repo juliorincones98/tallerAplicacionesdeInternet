@@ -11,9 +11,11 @@ import { getAdminSessionFromRequest } from "./admin.middleware.js";
 import { AdminService } from "./admin.service.js";
 import { adminLoginSchema } from "./admin.validation.js";
 
+// Reutilizamos el repositorio de reservas para que el panel admin comparta la misma fuente de datos.
 const adminService = new AdminService(new BookingsRepository());
 
 export class AdminController {
+  // Inicia sesion, firma la cookie y devuelve el estado de autenticacion al frontend admin.
   login = async (request: Request, response: Response): Promise<void> => {
     const parsedBody = adminLoginSchema.safeParse(request.body);
 
@@ -46,6 +48,7 @@ export class AdminController {
     });
   };
 
+  // Cierra la sesion limpiando la cookie actual del administrador.
   logout = async (_request: Request, response: Response): Promise<void> => {
     response.setHeader("Set-Cookie", buildLogoutCookie());
     response.json({
@@ -53,6 +56,7 @@ export class AdminController {
     });
   };
 
+  // Permite restaurar sesion al recargar la pagina del panel.
   getSession = async (request: Request, response: Response): Promise<void> => {
     const session = getAdminSessionFromRequest(request);
 
@@ -75,6 +79,7 @@ export class AdminController {
     });
   };
 
+  // Entrega al dashboard las reservas activas para uso operativo.
   listBookings = async (_request: Request, response: Response): Promise<void> => {
     try {
       const bookings = await adminService.listScheduledBookings();

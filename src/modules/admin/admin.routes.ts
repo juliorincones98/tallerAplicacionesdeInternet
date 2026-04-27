@@ -7,6 +7,7 @@ const adminController = new AdminController();
 
 export const adminRouter = Router();
 
+// Las rutas admin se agrupan porque comparten autenticacion distinta al flujo publico.
 adminRouter.post("/login", adminController.login);
 adminRouter.post("/logout", adminController.logout);
 adminRouter.get("/session", adminController.getSession);

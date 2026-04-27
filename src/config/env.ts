@@ -3,6 +3,7 @@ import { z } from "zod";
 
 dotenv.config();
 
+// Validamos todas las variables al iniciar para fallar temprano ante configuraciones incompletas.
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   ALLOWED_ORIGINS: z.string().min(1),
@@ -24,6 +25,7 @@ if (!parsedEnv.success) {
 }
 
 export const env = parsedEnv.data;
+// Se aceptan varios origenes separados por coma para cubrir desarrollo y produccion.
 export const allowedOrigins = env.ALLOWED_ORIGINS.split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);

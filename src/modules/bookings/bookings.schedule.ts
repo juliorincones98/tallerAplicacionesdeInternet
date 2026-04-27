@@ -1,5 +1,6 @@
 import type { SERVICES } from "./bookings.constants.js";
 
+// Todos los servicios trabajan con bloques operativos fijos de 40 minutos.
 const SLOT_DURATION_MINUTES = 40;
 
 type DailySchedule = {
@@ -14,6 +15,7 @@ type ServiceSchedule = {
 
 type ServiceName = (typeof SERVICES)[number];
 
+// Esta configuracion concentra las franjas horarias por motivo de consulta.
 const SERVICE_SCHEDULES: Record<ServiceName, ServiceSchedule> = {
   "Consulta general": {
     weekday: {
@@ -78,6 +80,7 @@ export const getScheduleForDate = (date: string, service: string): DailySchedule
   return null;
 };
 
+// Genera la grilla completa de horas validas para una fecha y servicio.
 export const getAvailableTimeSlotsForDate = (date: string, service: string): string[] => {
   const schedule = getScheduleForDate(date, service);
 
@@ -96,6 +99,7 @@ export const getAvailableTimeSlotsForDate = (date: string, service: string): str
   return slots;
 };
 
+// Defensa de backend para rechazar horas manipuladas desde el cliente.
 export const isValidTimeSlotForDate = (date: string, time: string, service: string): boolean => {
   return getAvailableTimeSlotsForDate(date, service).includes(time);
 };
