@@ -18,6 +18,8 @@ Esta version ya incluye:
 - arquitectura por capas
 - validacion de datos en servidor
 - persistencia de reservas en `Supabase`
+- reservas en bloques de 40 minutos
+- validacion de horas ocupadas y fechas pasadas
 - configuracion segura mediante variables de entorno
 
 El formulario ya envia una solicitud real al backend y el backend puede registrar la reserva en la base de datos.
@@ -30,6 +32,24 @@ Para pasar de una maqueta visual a una aplicacion funcional se incorporaron dos 
 2. Conexion a Supabase para almacenar las reservas en PostgreSQL.
 
 Con esto, el sistema dejo de ser solo visual y paso a tener flujo completo de reserva.
+
+## Reglas de reserva actuales
+
+El modulo de reservas ya contempla reglas funcionales para evitar conflictos en la agenda:
+
+- las horas se ofrecen en bloques fijos de `40 minutos`
+- no se pueden reservar fechas u horas anteriores al momento actual
+- no se puede reservar una hora que ya fue tomada
+- los bloques disponibles cambian segun la fecha seleccionada
+- los domingos no se generan horarios de atencion
+
+Horarios actualmente configurados:
+
+- lunes a viernes: `09:00` a `19:00`
+- sabado: `10:00` a `14:00`
+- domingo: sin atencion
+
+El frontend muestra solo bloques disponibles y el backend vuelve a validar esas reglas antes de guardar la reserva.
 
 ## Stack tecnologico
 
@@ -153,6 +173,8 @@ http://localhost:3000
 
 - `GET /api/health`
   Comprueba que el servidor este operativo.
+- `GET /api/bookings/availability?date=YYYY-MM-DD`
+  Devuelve bloques ocupados y bloques disponibles para una fecha.
 - `POST /api/bookings`
   Registra una nueva solicitud de reserva.
 
@@ -165,7 +187,7 @@ http://localhost:3000
   "petType": "Perro",
   "service": "Consulta general",
   "appointmentDate": "2026-04-30",
-  "appointmentTime": "10:30",
+  "appointmentTime": "10:20",
   "phone": "+56 9 1234 5678",
   "notes": "Primera visita"
 }
