@@ -50,6 +50,7 @@ Desde este panel es posible:
 - iniciar sesion como administrador
 - consultar reservas pendientes y confirmadas
 - actualizar el listado sin salir de la vista
+- eliminar reservas desde la tabla del panel
 - cerrar sesion de forma segura
 
 La sesion se maneja mediante una cookie `HttpOnly` emitida por el backend.
@@ -250,6 +251,8 @@ http://localhost:3000
   Verifica si existe una sesion admin activa.
 - `GET /api/admin/bookings`
   Devuelve las reservas agendadas. Requiere sesion admin.
+- `DELETE /api/admin/bookings/:id`
+  Elimina una reserva desde el panel administrativo. Requiere sesion admin.
 
 ## Ejemplo de payload
 
@@ -284,6 +287,7 @@ Se aplicaron buenas practicas basicas para evitar exponer informacion sensible:
 - `phone` y `notes` ahora tienen validaciones mas estrictas.
 - El panel admin requiere login y protege la consulta de reservas con sesion firmada.
 - La cookie del administrador se emite como `HttpOnly` y `SameSite=Strict`.
+- La eliminacion de reservas solo se permite desde rutas admin autenticadas.
 
 ## Recomendaciones antes de publicar
 
@@ -304,6 +308,7 @@ Siguientes mejoras sugeridas:
 - cancelacion y reprogramacion de reservas
 - disponibilidad dinamica por bloques horarios
 - gestion de estados desde el panel admin
+- reemplazar borrado fisico por cancelacion logica con auditoria
 
 ## Autor
 

@@ -45,7 +45,7 @@ const renderBookings = (bookings) => {
   if (bookings.length === 0) {
     bookingsBody.innerHTML = `
       <tr>
-        <td colspan="7">No hay reservas agendadas en este momento.</td>
+        <td colspan="8">No hay reservas agendadas en este momento.</td>
       </tr>
     `;
     if (adminCount instanceof HTMLElement) {
@@ -63,11 +63,49 @@ const renderBookings = (bookings) => {
       <td>${booking.petName} (${booking.petType})</td>
       <td>${booking.phone}</td>
       <td><span class="admin-status-pill admin-status-pill--${booking.status}">${booking.status}</span></td>
+      <td>
+        <button class="button button-secondary admin-delete-button" type="button" data-booking-id="${booking.id}">
+          Eliminar
+        </button>
+      </td>
     </tr>
   `).join("");
 
   if (adminCount instanceof HTMLElement) {
     adminCount.textContent = `${bookings.length} reserva${bookings.length === 1 ? "" : "s"}`;
+  }
+};
+
+// Ejecuta el borrado desde el panel admin y luego sincroniza nuevamente la tabla con la base de datos.
+const deleteBooking = async (bookingId) => {
+  const confirmed = window.confirm("Esta accion eliminara la reserva de forma permanente. Deseas continuar?");
+
+  if (!confirmed) {
+    return;
+  }
+
+  setStatusMessage(tableStatus, "Eliminando reserva...", "loading");
+
+  try {
+    const response = await fetch(`/api/admin/bookings/${encodeURIComponent(bookingId)}`, {
+      method: "DELETE",
+      credentials: "same-origin"
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "No fue posible eliminar la reserva.");
+    }
+
+    await loadBookings();
+    setStatusMessage(tableStatus, "Reserva eliminada correctamente.", "success");
+  } catch (error) {
+    setStatusMessage(
+      tableStatus,
+      error instanceof Error ? error.message : "No fue posible eliminar la reserva.",
+      "error"
+    );
   }
 };
 
@@ -200,7 +238,7 @@ if (logoutButton instanceof HTMLButtonElement) {
     if (bookingsBody instanceof HTMLElement) {
       bookingsBody.innerHTML = `
         <tr>
-          <td colspan="7">Inicia sesion para cargar las reservas.</td>
+          <td colspan="8">Inicia sesion para cargar las reservas.</td>
         </tr>
       `;
     }
@@ -210,6 +248,31 @@ if (logoutButton instanceof HTMLButtonElement) {
     if (adminCount instanceof HTMLElement) {
       adminCount.textContent = "0 reservas";
     }
+  });
+}
+
+if (bookingsBody instanceof HTMLElement) {
+  // Delegamos el click de eliminar sobre la tabla para soportar filas renderizadas dinamicamente.
+  bookingsBody.addEventListener("click", async (event) => {
+    const target = event.target;
+
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    const deleteButton = target.closest("[data-booking-id]");
+
+    if (!(deleteButton instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const bookingId = deleteButton.dataset.bookingId;
+
+    if (!bookingId) {
+      return;
+    }
+
+    await deleteBooking(bookingId);
   });
 }
 

@@ -9,7 +9,7 @@ import {
 } from "./admin.auth.js";
 import { getAdminSessionFromRequest } from "./admin.middleware.js";
 import { AdminService } from "./admin.service.js";
-import { adminLoginSchema } from "./admin.validation.js";
+import { adminBookingParamsSchema, adminLoginSchema } from "./admin.validation.js";
 
 // Reutilizamos el repositorio de reservas para que el panel admin comparta la misma fuente de datos.
 const adminService = new AdminService(new BookingsRepository());
@@ -91,6 +91,31 @@ export class AdminController {
     } catch (error) {
       response.status(500).json({
         message: error instanceof Error ? error.message : "No fue posible obtener las reservas."
+      });
+    }
+  };
+
+  // Elimina una reserva especifica desde el panel admin usando su id.
+  deleteBooking = async (request: Request, response: Response): Promise<void> => {
+    const parsedParams = adminBookingParamsSchema.safeParse(request.params);
+
+    if (!parsedParams.success) {
+      response.status(400).json({
+        message: "Debes indicar una reserva valida para eliminar.",
+        errors: parsedParams.error.flatten().fieldErrors
+      });
+      return;
+    }
+
+    try {
+      await adminService.deleteBooking(parsedParams.data.id);
+
+      response.json({
+        message: "Reserva eliminada correctamente."
+      });
+    } catch (error) {
+      response.status(500).json({
+        message: error instanceof Error ? error.message : "No fue posible eliminar la reserva."
       });
     }
   };

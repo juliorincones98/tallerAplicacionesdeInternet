@@ -49,6 +49,19 @@ export class BookingsRepository {
     return (data ?? []).map((row) => toDomain(row as BookingRow));
   }
 
+  // Elimina una reserva por id para tareas administrativas de limpieza o correccion.
+  async deleteById(id: string): Promise<void> {
+    // Este borrado es fisico: si el equipo necesita auditoria, conviene migrarlo a cancelacion logica.
+    const { error } = await supabase
+      .from(TABLE_NAME)
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw new Error(`No fue posible eliminar la reserva: ${error.message}`);
+    }
+  }
+
   // Busca si ya existe una reserva activa para la misma fecha, hora y servicio.
   async findByDateAndTime(
     appointmentDate: string,

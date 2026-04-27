@@ -622,6 +622,11 @@ h3 {
   background: rgba(239, 68, 68, 0.15);
 }
 
+.admin-delete-button {
+  min-width: 7rem;
+  padding: 0.75rem 1rem;
+}
+
 @media (max-width: 900px) {
   .hero-grid,
   .booking-grid,

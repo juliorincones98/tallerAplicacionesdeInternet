@@ -8,4 +8,9 @@ export class AdminService {
   async listScheduledBookings(): Promise<Booking[]> {
     return this.bookingsRepository.listScheduled();
   }
+
+  // El borrado fisico se reserva al panel admin para correcciones manuales de agenda.
+  async deleteBooking(id: string): Promise<void> {
+    await this.bookingsRepository.deleteById(id);
+  }
 }
