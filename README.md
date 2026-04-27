@@ -183,7 +183,30 @@ Variables nuevas de seguridad:
 - `ADMIN_PASSWORD`
   Contrasena del administrador.
 - `ADMIN_SESSION_SECRET`
-  Clave usada para firmar la sesion del administrador.
+  Clave secreta usada por el backend para firmar y validar la sesion del administrador.
+
+### Sobre `ADMIN_SESSION_SECRET`
+
+`ADMIN_SESSION_SECRET` no es una contrasena que escriba el usuario. Es una clave interna del servidor.
+
+Su funcion es:
+
+- firmar la cookie de sesion del panel admin
+- impedir que alguien pueda falsificar manualmente una sesion valida
+- validar que la cookie fue emitida realmente por tu backend
+
+Buenas practicas para usarlo:
+
+- debe ser largo y dificil de adivinar
+- no debe repetirse entre proyectos o entornos
+- no debe subirse nunca al repositorio
+- si cambias este valor, todas las sesiones admin actuales dejan de ser validas
+
+Ejemplo recomendado:
+
+```env
+ADMIN_SESSION_SECRET=8vK3xP2mQ9sL7nA4rT1yW6cH5uJ0zBqE
+```
 
 ## Configuracion de Supabase
 
