@@ -1,14 +1,56 @@
-import type { Booking } from "./bookings.types.js";
-import type { CreateBookingDto } from "./bookings.validation.js";
+import type { Booking, BookingAvailability } from "./bookings.types.js";
+import type { BookingAvailabilityDto, CreateBookingDto } from "./bookings.validation.js";
+import { BookingConflictError, BookingValidationError } from "./bookings.errors.js";
 import { BookingsRepository } from "./bookings.repository.js";
+import { getAvailableTimeSlotsForDate, isValidTimeSlotForDate } from "./bookings.schedule.js";
+
+const buildLocalAppointmentDate = (date: string, time: string): Date => {
+  const [year, month, day] = date.split("-").map(Number);
+  const [hours, minutes] = time.split(":").map(Number);
+
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+};
 
 export class BookingsService {
   constructor(private readonly bookingsRepository: BookingsRepository) {}
 
   async createBooking(input: CreateBookingDto): Promise<Booking> {
+    const appointmentDate = buildLocalAppointmentDate(input.appointmentDate, input.appointmentTime);
+    const now = new Date();
+
+    if (Number.isNaN(appointmentDate.getTime()) || appointmentDate <= now) {
+      throw new BookingValidationError("No puedes reservar una fecha u hora anterior al momento actual.");
+    }
+
+    if (!isValidTimeSlotForDate(input.appointmentDate, input.appointmentTime)) {
+      throw new BookingValidationError(
+        "La hora seleccionada no corresponde a un bloque valido de atencion de 40 minutos."
+      );
+    }
+
+    const existingBooking = await this.bookingsRepository.findByDateAndTime(
+      input.appointmentDate,
+      input.appointmentTime
+    );
+
+    if (existingBooking) {
+      throw new BookingConflictError("La hora seleccionada ya se encuentra reservada.");
+    }
+
     return this.bookingsRepository.create({
       ...input,
       notes: input.notes?.trim() || ""
     });
+  }
+
+  async getAvailability(input: BookingAvailabilityDto): Promise<BookingAvailability> {
+    const occupiedTimes = await this.bookingsRepository.listOccupiedTimesByDate(input.date);
+    const availableTimes = getAvailableTimeSlotsForDate(input.date);
+
+    return {
+      date: input.date,
+      occupiedTimes,
+      availableTimes
+    };
   }
 }

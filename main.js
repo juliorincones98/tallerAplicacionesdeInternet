@@ -1,7 +1,199 @@
 const bookingForm = document.querySelector(".booking-form");
 const formStatus = document.querySelector("[data-form-status]");
+const availabilityStatus = document.querySelector("[data-availability-status]");
+
+const dateInput = bookingForm instanceof HTMLFormElement
+  ? bookingForm.querySelector("#fecha")
+  : null;
+
+const timeInput = bookingForm instanceof HTMLFormElement
+  ? bookingForm.querySelector("#hora")
+  : null;
+
+const getTodayString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = `${now.getMonth() + 1}`.padStart(2, "0");
+  const day = `${now.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const getCurrentTimeString = () => {
+  const now = new Date();
+  const hours = `${now.getHours()}`.padStart(2, "0");
+  const minutes = `${now.getMinutes()}`.padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+};
+
+const disableTimeSelect = (placeholder) => {
+  if (!(timeInput instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  timeInput.innerHTML = "";
+  const option = document.createElement("option");
+  option.value = "";
+  option.textContent = placeholder;
+  timeInput.append(option);
+  timeInput.value = "";
+  timeInput.disabled = true;
+};
+
+const fillTimeSelect = (timeOptions) => {
+  if (!(timeInput instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  timeInput.innerHTML = "";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Selecciona una hora";
+  timeInput.append(defaultOption);
+
+  for (const time of timeOptions) {
+    const option = document.createElement("option");
+    option.value = time;
+    option.textContent = time;
+    timeInput.append(option);
+  }
+
+  timeInput.disabled = timeOptions.length === 0;
+};
+
+const isPastAppointment = (date, time) => {
+  if (!date || !time) {
+    return false;
+  }
+
+  const [year, month, day] = date.split("-").map(Number);
+  const [hours, minutes] = time.split(":").map(Number);
+  const appointmentDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+
+  return appointmentDate.getTime() <= Date.now();
+};
+
+const updateMinimumDateTime = () => {
+  if (!(dateInput instanceof HTMLInputElement)) {
+    return;
+  }
+
+  const today = getTodayString();
+  dateInput.min = today;
+};
+
+const renderAvailability = (date, occupiedTimes = [], availableTimes = []) => {
+  if (!(availabilityStatus instanceof HTMLElement)) {
+    return;
+  }
+
+  if (!date) {
+    availabilityStatus.textContent = "";
+    availabilityStatus.dataset.state = "";
+    return;
+  }
+
+  if (availableTimes.length === 0) {
+    availabilityStatus.textContent = "No hay atencion disponible para la fecha seleccionada.";
+    availabilityStatus.dataset.state = "warning";
+    return;
+  }
+
+  if (occupiedTimes.length === 0) {
+    availabilityStatus.textContent = "Todos los bloques de 40 minutos disponibles para esa fecha.";
+    availabilityStatus.dataset.state = "success";
+    return;
+  }
+
+  availabilityStatus.textContent = `Bloques ocupados: ${occupiedTimes.join(", ")}`;
+  availabilityStatus.dataset.state = "warning";
+};
+
+const loadAvailability = async () => {
+  if (!(dateInput instanceof HTMLInputElement)) {
+    return [];
+  }
+
+  updateMinimumDateTime();
+
+  if (!dateInput.value) {
+    renderAvailability("");
+    disableTimeSelect("Selecciona una fecha primero");
+    return [];
+  }
+
+  if (!(availabilityStatus instanceof HTMLElement)) {
+    return [];
+  }
+
+  availabilityStatus.textContent = "Consultando horas reservadas...";
+  availabilityStatus.dataset.state = "loading";
+
+  try {
+    const response = await fetch(`/api/bookings/availability?date=${encodeURIComponent(dateInput.value)}`);
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "No se pudo consultar la disponibilidad.");
+    }
+
+    const occupiedTimes = Array.isArray(result.data?.occupiedTimes)
+      ? result.data.occupiedTimes
+      : [];
+    const availableTimes = Array.isArray(result.data?.availableTimes)
+      ? result.data.availableTimes
+      : [];
+    const currentTime = getCurrentTimeString();
+    const filteredTimes = availableTimes.filter((time) => {
+      if (dateInput.value !== getTodayString()) {
+        return true;
+      }
+
+      return time > currentTime;
+    });
+
+    const openTimes = filteredTimes.filter((time) => !occupiedTimes.includes(time));
+
+    if (openTimes.length === 0) {
+      disableTimeSelect("No hay bloques disponibles");
+    } else {
+      fillTimeSelect(openTimes);
+    }
+
+    renderAvailability(dateInput.value, occupiedTimes, availableTimes);
+    return occupiedTimes;
+  } catch (error) {
+    disableTimeSelect("No se pudo cargar la disponibilidad");
+    availabilityStatus.textContent = error instanceof Error
+      ? error.message
+      : "No se pudo consultar la disponibilidad.";
+    availabilityStatus.dataset.state = "error";
+    return [];
+  }
+};
 
 if (bookingForm instanceof HTMLFormElement && formStatus instanceof HTMLElement) {
+  if (dateInput instanceof HTMLInputElement) {
+    dateInput.addEventListener("change", async () => {
+      if (timeInput instanceof HTMLSelectElement && dateInput.value !== getTodayString()) {
+        timeInput.value = "";
+      }
+
+      await loadAvailability();
+    });
+  }
+
+  if (timeInput instanceof HTMLSelectElement) {
+    timeInput.addEventListener("change", () => {
+      updateMinimumDateTime();
+    });
+  }
+
+  updateMinimumDateTime();
+  disableTimeSelect("Selecciona una fecha primero");
+
   bookingForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -16,6 +208,20 @@ if (bookingForm instanceof HTMLFormElement && formStatus instanceof HTMLElement)
       phone: formData.get("telefono")?.toString().trim() ?? "",
       notes: formData.get("mensaje")?.toString().trim() ?? ""
     };
+
+    if (isPastAppointment(payload.appointmentDate, payload.appointmentTime)) {
+      formStatus.textContent = "No puedes reservar una fecha u hora anterior al momento actual.";
+      formStatus.dataset.state = "error";
+      return;
+    }
+
+    const occupiedTimes = await loadAvailability();
+
+    if (occupiedTimes.includes(payload.appointmentTime)) {
+      formStatus.textContent = "La hora seleccionada ya se encuentra reservada. Elige otra opcion.";
+      formStatus.dataset.state = "error";
+      return;
+    }
 
     const submitButton = bookingForm.querySelector('button[type="submit"]');
 
@@ -43,6 +249,8 @@ if (bookingForm instanceof HTMLFormElement && formStatus instanceof HTMLElement)
       }
 
       bookingForm.reset();
+      disableTimeSelect("Selecciona una fecha primero");
+      renderAvailability("");
       formStatus.textContent = "Reserva enviada con exito. Te contactaremos para confirmar la hora.";
       formStatus.dataset.state = "success";
     } catch (error) {

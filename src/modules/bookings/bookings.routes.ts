@@ -10,4 +10,5 @@ const bookingsController = new BookingsController(bookingsService);
 
 export const bookingsRouter = Router();
 
+bookingsRouter.get("/availability", bookingsController.getAvailability);
 bookingsRouter.post("/", bookingsController.create);

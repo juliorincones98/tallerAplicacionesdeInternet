@@ -16,3 +16,9 @@ export interface Booking extends CreateBookingInput {
   status: BookingStatus;
   createdAt: string;
 }
+
+export interface BookingAvailability {
+  date: string;
+  occupiedTimes: string[];
+  availableTimes: string[];
+}

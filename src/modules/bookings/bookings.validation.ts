@@ -12,3 +12,9 @@ export const createBookingSchema = z.object({
 });
 
 export type CreateBookingDto = z.infer<typeof createBookingSchema>;
+
+export const bookingAvailabilitySchema = z.object({
+  date: z.iso.date("Debes indicar una fecha valida.")
+});
+
+export type BookingAvailabilityDto = z.infer<typeof bookingAvailabilitySchema>;

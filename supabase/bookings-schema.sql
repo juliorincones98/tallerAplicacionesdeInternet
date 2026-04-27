@@ -14,6 +14,10 @@ create table if not exists public.bookings (
   created_at timestamptz not null default now()
 );
 
+create unique index if not exists bookings_unique_active_slot
+on public.bookings (appointment_date, appointment_time)
+where status in ('pendiente', 'confirmada');
+
 alter table public.bookings enable row level security;
 
 create policy "Allow inserts with service role"

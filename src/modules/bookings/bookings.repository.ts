@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase.js";
 import type { Booking, CreateBookingInput } from "./bookings.types.js";
+import { BookingConflictError } from "./bookings.errors.js";
 
 const TABLE_NAME = "bookings";
 
@@ -32,6 +33,37 @@ const toDomain = (row: BookingRow): Booking => ({
 });
 
 export class BookingsRepository {
+  async findByDateAndTime(appointmentDate: string, appointmentTime: string): Promise<Booking | null> {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select("*")
+      .eq("appointment_date", appointmentDate)
+      .eq("appointment_time", appointmentTime)
+      .in("status", ["pendiente", "confirmada"])
+      .maybeSingle<BookingRow>();
+
+    if (error) {
+      throw new Error(`No fue posible consultar la disponibilidad: ${error.message}`);
+    }
+
+    return data ? toDomain(data) : null;
+  }
+
+  async listOccupiedTimesByDate(appointmentDate: string): Promise<string[]> {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select("appointment_time")
+      .eq("appointment_date", appointmentDate)
+      .in("status", ["pendiente", "confirmada"])
+      .order("appointment_time", { ascending: true });
+
+    if (error) {
+      throw new Error(`No fue posible consultar las horas ocupadas: ${error.message}`);
+    }
+
+    return (data ?? []).map((row) => String(row.appointment_time).slice(0, 5));
+  }
+
   async create(data: CreateBookingInput): Promise<Booking> {
     const { data: createdBooking, error } = await supabase
       .from(TABLE_NAME)
@@ -50,6 +82,10 @@ export class BookingsRepository {
       .single<BookingRow>();
 
     if (error) {
+      if (error.code === "23505") {
+        throw new BookingConflictError("La hora seleccionada ya fue reservada por otro cliente.");
+      }
+
       throw new Error(`No fue posible guardar la reserva: ${error.message}`);
     }
 
