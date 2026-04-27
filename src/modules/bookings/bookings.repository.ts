@@ -33,12 +33,17 @@ const toDomain = (row: BookingRow): Booking => ({
 });
 
 export class BookingsRepository {
-  async findByDateAndTime(appointmentDate: string, appointmentTime: string): Promise<Booking | null> {
+  async findByDateAndTime(
+    appointmentDate: string,
+    appointmentTime: string,
+    service: string
+  ): Promise<Booking | null> {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select("*")
       .eq("appointment_date", appointmentDate)
       .eq("appointment_time", appointmentTime)
+      .eq("service", service)
       .in("status", ["pendiente", "confirmada"])
       .maybeSingle<BookingRow>();
 
@@ -49,11 +54,12 @@ export class BookingsRepository {
     return data ? toDomain(data) : null;
   }
 
-  async listOccupiedTimesByDate(appointmentDate: string): Promise<string[]> {
+  async listOccupiedTimesByDate(appointmentDate: string, service: string): Promise<string[]> {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select("appointment_time")
       .eq("appointment_date", appointmentDate)
+      .eq("service", service)
       .in("status", ["pendiente", "confirmada"])
       .order("appointment_time", { ascending: true });
 

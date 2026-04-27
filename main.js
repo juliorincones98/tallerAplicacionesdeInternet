@@ -6,6 +6,10 @@ const dateInput = bookingForm instanceof HTMLFormElement
   ? bookingForm.querySelector("#fecha")
   : null;
 
+const serviceInput = bookingForm instanceof HTMLFormElement
+  ? bookingForm.querySelector("#servicio")
+  : null;
+
 const timeInput = bookingForm instanceof HTMLFormElement
   ? bookingForm.querySelector("#hora")
   : null;
@@ -84,42 +88,48 @@ const updateMinimumDateTime = () => {
   dateInput.min = today;
 };
 
-const renderAvailability = (date, occupiedTimes = [], availableTimes = []) => {
+const renderAvailability = (date, service, occupiedTimes = [], availableTimes = []) => {
   if (!(availabilityStatus instanceof HTMLElement)) {
     return;
   }
 
-  if (!date) {
+  if (!date || !service) {
     availabilityStatus.textContent = "";
     availabilityStatus.dataset.state = "";
     return;
   }
 
   if (availableTimes.length === 0) {
-    availabilityStatus.textContent = "No hay atencion disponible para la fecha seleccionada.";
+    availabilityStatus.textContent = `No hay atencion disponible para ${service} en la fecha seleccionada.`;
     availabilityStatus.dataset.state = "warning";
     return;
   }
 
   if (occupiedTimes.length === 0) {
-    availabilityStatus.textContent = "Todos los bloques de 40 minutos disponibles para esa fecha.";
+    availabilityStatus.textContent = `Todos los bloques de 40 minutos para ${service} estan disponibles.`;
     availabilityStatus.dataset.state = "success";
     return;
   }
 
-  availabilityStatus.textContent = `Bloques ocupados: ${occupiedTimes.join(", ")}`;
+  availabilityStatus.textContent = `Bloques ocupados para ${service}: ${occupiedTimes.join(", ")}`;
   availabilityStatus.dataset.state = "warning";
 };
 
 const loadAvailability = async () => {
-  if (!(dateInput instanceof HTMLInputElement)) {
+  if (!(dateInput instanceof HTMLInputElement) || !(serviceInput instanceof HTMLSelectElement)) {
     return [];
   }
 
   updateMinimumDateTime();
 
+  if (!serviceInput.value) {
+    renderAvailability("", "");
+    disableTimeSelect("Selecciona un servicio primero");
+    return [];
+  }
+
   if (!dateInput.value) {
-    renderAvailability("");
+    renderAvailability("", "");
     disableTimeSelect("Selecciona una fecha primero");
     return [];
   }
@@ -132,7 +142,9 @@ const loadAvailability = async () => {
   availabilityStatus.dataset.state = "loading";
 
   try {
-    const response = await fetch(`/api/bookings/availability?date=${encodeURIComponent(dateInput.value)}`);
+    const response = await fetch(
+      `/api/bookings/availability?date=${encodeURIComponent(dateInput.value)}&service=${encodeURIComponent(serviceInput.value)}`
+    );
     const result = await response.json();
 
     if (!response.ok) {
@@ -162,7 +174,7 @@ const loadAvailability = async () => {
       fillTimeSelect(openTimes);
     }
 
-    renderAvailability(dateInput.value, occupiedTimes, availableTimes);
+    renderAvailability(dateInput.value, serviceInput.value, occupiedTimes, availableTimes);
     return occupiedTimes;
   } catch (error) {
     disableTimeSelect("No se pudo cargar la disponibilidad");
@@ -175,9 +187,19 @@ const loadAvailability = async () => {
 };
 
 if (bookingForm instanceof HTMLFormElement && formStatus instanceof HTMLElement) {
+  if (serviceInput instanceof HTMLSelectElement) {
+    serviceInput.addEventListener("change", async () => {
+      if (timeInput instanceof HTMLSelectElement) {
+        timeInput.value = "";
+      }
+
+      await loadAvailability();
+    });
+  }
+
   if (dateInput instanceof HTMLInputElement) {
     dateInput.addEventListener("change", async () => {
-      if (timeInput instanceof HTMLSelectElement && dateInput.value !== getTodayString()) {
+      if (timeInput instanceof HTMLSelectElement) {
         timeInput.value = "";
       }
 
@@ -192,7 +214,7 @@ if (bookingForm instanceof HTMLFormElement && formStatus instanceof HTMLElement)
   }
 
   updateMinimumDateTime();
-  disableTimeSelect("Selecciona una fecha primero");
+  disableTimeSelect("Selecciona un servicio primero");
 
   bookingForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -249,8 +271,8 @@ if (bookingForm instanceof HTMLFormElement && formStatus instanceof HTMLElement)
       }
 
       bookingForm.reset();
-      disableTimeSelect("Selecciona una fecha primero");
-      renderAvailability("");
+      disableTimeSelect("Selecciona un servicio primero");
+      renderAvailability("", "");
       formStatus.textContent = "Reserva enviada con exito. Te contactaremos para confirmar la hora.";
       formStatus.dataset.state = "success";
     } catch (error) {

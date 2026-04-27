@@ -20,6 +20,7 @@ Esta version ya incluye:
 - persistencia de reservas en `Supabase`
 - reservas en bloques de 40 minutos
 - validacion de horas ocupadas y fechas pasadas
+- disponibilidad separada por motivo de consulta
 - configuracion segura mediante variables de entorno
 
 El formulario ya envia una solicitud real al backend y el backend puede registrar la reserva en la base de datos.
@@ -39,17 +40,24 @@ El modulo de reservas ya contempla reglas funcionales para evitar conflictos en 
 
 - las horas se ofrecen en bloques fijos de `40 minutos`
 - no se pueden reservar fechas u horas anteriores al momento actual
-- no se puede reservar una hora que ya fue tomada
-- los bloques disponibles cambian segun la fecha seleccionada
+- no se puede reservar una hora que ya fue tomada dentro del mismo servicio
+- los bloques disponibles cambian segun la fecha seleccionada y el motivo de consulta
 - los domingos no se generan horarios de atencion
 
-Horarios actualmente configurados:
+Horarios actualmente configurados por servicio:
 
-- lunes a viernes: `09:00` a `19:00`
-- sabado: `10:00` a `14:00`
-- domingo: sin atencion
+- `Consulta general`
+  lunes a viernes: `09:00` a `13:00`
+  sabado: `10:00` a `13:20`
+- `Vacunación`
+  lunes a viernes: `15:00` a `19:00`
+  sabado: `10:00` a `12:40`
+- `Control preventivo`
+  lunes a viernes: `11:00` a `18:20`
+  sabado: `11:20` a `14:00`
+- domingo: sin atencion para todos los servicios
 
-El frontend muestra solo bloques disponibles y el backend vuelve a validar esas reglas antes de guardar la reserva.
+El frontend muestra solo bloques disponibles para el servicio elegido y el backend vuelve a validar esas reglas antes de guardar la reserva.
 
 ## Stack tecnologico
 
@@ -173,8 +181,8 @@ http://localhost:3000
 
 - `GET /api/health`
   Comprueba que el servidor este operativo.
-- `GET /api/bookings/availability?date=YYYY-MM-DD`
-  Devuelve bloques ocupados y bloques disponibles para una fecha.
+- `GET /api/bookings/availability?date=YYYY-MM-DD&service=SERVICIO`
+  Devuelve bloques ocupados y bloques disponibles para una fecha y servicio.
 - `POST /api/bookings`
   Registra una nueva solicitud de reserva.
 
@@ -203,6 +211,7 @@ Se aplicaron buenas practicas basicas para evitar exponer informacion sensible:
 - `node_modules` y `dist` estan ignorados por Git.
 - La validacion con Zod filtra datos invalidos antes de llegar a la base de datos.
 - La logica de acceso a datos esta encapsulada y no expone credenciales al navegador.
+- La unicidad de reservas debe considerarse por `fecha + hora + servicio`.
 
 ## Recomendaciones antes de publicar
 

@@ -22,15 +22,16 @@ export class BookingsService {
       throw new BookingValidationError("No puedes reservar una fecha u hora anterior al momento actual.");
     }
 
-    if (!isValidTimeSlotForDate(input.appointmentDate, input.appointmentTime)) {
+    if (!isValidTimeSlotForDate(input.appointmentDate, input.appointmentTime, input.service)) {
       throw new BookingValidationError(
-        "La hora seleccionada no corresponde a un bloque valido de atencion de 40 minutos."
+        "La hora seleccionada no corresponde a un bloque valido para el servicio elegido."
       );
     }
 
     const existingBooking = await this.bookingsRepository.findByDateAndTime(
       input.appointmentDate,
-      input.appointmentTime
+      input.appointmentTime,
+      input.service
     );
 
     if (existingBooking) {
@@ -44,11 +45,12 @@ export class BookingsService {
   }
 
   async getAvailability(input: BookingAvailabilityDto): Promise<BookingAvailability> {
-    const occupiedTimes = await this.bookingsRepository.listOccupiedTimesByDate(input.date);
-    const availableTimes = getAvailableTimeSlotsForDate(input.date);
+    const occupiedTimes = await this.bookingsRepository.listOccupiedTimesByDate(input.date, input.service);
+    const availableTimes = getAvailableTimeSlotsForDate(input.date, input.service);
 
     return {
       date: input.date,
+      service: input.service,
       occupiedTimes,
       availableTimes
     };

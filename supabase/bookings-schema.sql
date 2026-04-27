@@ -15,7 +15,7 @@ create table if not exists public.bookings (
 );
 
 create unique index if not exists bookings_unique_active_slot
-on public.bookings (appointment_date, appointment_time)
+on public.bookings (appointment_date, appointment_time, service)
 where status in ('pendiente', 'confirmada');
 
 alter table public.bookings enable row level security;

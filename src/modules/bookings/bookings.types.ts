@@ -19,6 +19,7 @@ export interface Booking extends CreateBookingInput {
 
 export interface BookingAvailability {
   date: string;
+  service: string;
   occupiedTimes: string[];
   availableTimes: string[];
 }

@@ -5,14 +5,42 @@ type DailySchedule = {
   end: string;
 };
 
-const WEEKDAY_SCHEDULE: DailySchedule = {
-  start: "09:00",
-  end: "19:00"
+type ServiceSchedule = {
+  weekday: DailySchedule;
+  saturday: DailySchedule | null;
 };
 
-const SATURDAY_SCHEDULE: DailySchedule = {
-  start: "10:00",
-  end: "14:00"
+const SERVICE_SCHEDULES: Record<string, ServiceSchedule> = {
+  "Consulta general": {
+    weekday: {
+      start: "09:00",
+      end: "13:00"
+    },
+    saturday: {
+      start: "10:00",
+      end: "13:20"
+    }
+  },
+  "Vacunación": {
+    weekday: {
+      start: "15:00",
+      end: "19:00"
+    },
+    saturday: {
+      start: "10:00",
+      end: "12:40"
+    }
+  },
+  "Control preventivo": {
+    weekday: {
+      start: "11:00",
+      end: "18:20"
+    },
+    saturday: {
+      start: "11:20",
+      end: "14:00"
+    }
+  }
 };
 
 const parseTime = (time: string): number => {
@@ -26,23 +54,28 @@ const toTimeLabel = (totalMinutes: number): string => {
   return `${hours}:${minutes}`;
 };
 
-export const getScheduleForDate = (date: string): DailySchedule | null => {
+export const getScheduleForDate = (date: string, service: string): DailySchedule | null => {
   const [year, month, day] = date.split("-").map(Number);
   const weekDay = new Date(year, month - 1, day).getDay();
+  const serviceSchedule = SERVICE_SCHEDULES[service];
+
+  if (!serviceSchedule) {
+    return null;
+  }
 
   if (weekDay >= 1 && weekDay <= 5) {
-    return WEEKDAY_SCHEDULE;
+    return serviceSchedule.weekday;
   }
 
   if (weekDay === 6) {
-    return SATURDAY_SCHEDULE;
+    return serviceSchedule.saturday;
   }
 
   return null;
 };
 
-export const getAvailableTimeSlotsForDate = (date: string): string[] => {
-  const schedule = getScheduleForDate(date);
+export const getAvailableTimeSlotsForDate = (date: string, service: string): string[] => {
+  const schedule = getScheduleForDate(date, service);
 
   if (!schedule) {
     return [];
@@ -59,6 +92,6 @@ export const getAvailableTimeSlotsForDate = (date: string): string[] => {
   return slots;
 };
 
-export const isValidTimeSlotForDate = (date: string, time: string): boolean => {
-  return getAvailableTimeSlotsForDate(date).includes(time);
+export const isValidTimeSlotForDate = (date: string, time: string, service: string): boolean => {
+  return getAvailableTimeSlotsForDate(date, service).includes(time);
 };
