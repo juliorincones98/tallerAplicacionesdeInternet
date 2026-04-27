@@ -8,6 +8,9 @@ const envSchema = z.object({
   ALLOWED_ORIGINS: z.string().min(1),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900000),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(20),
+  ADMIN_USERNAME: z.string().min(3),
+  ADMIN_PASSWORD: z.string().min(8),
+  ADMIN_SESSION_SECRET: z.string().min(16),
   SUPABASE_URL: z.url(),
   SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1)

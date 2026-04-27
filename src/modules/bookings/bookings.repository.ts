@@ -33,6 +33,21 @@ const toDomain = (row: BookingRow): Booking => ({
 });
 
 export class BookingsRepository {
+  async listScheduled(): Promise<Booking[]> {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select("*")
+      .in("status", ["pendiente", "confirmada"])
+      .order("appointment_date", { ascending: true })
+      .order("appointment_time", { ascending: true });
+
+    if (error) {
+      throw new Error(`No fue posible obtener las reservas: ${error.message}`);
+    }
+
+    return (data ?? []).map((row) => toDomain(row as BookingRow));
+  }
+
   async findByDateAndTime(
     appointmentDate: string,
     appointmentTime: string,

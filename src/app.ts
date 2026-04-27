@@ -41,3 +41,7 @@ app.use("/api", apiRouter);
 app.get("/", (_request, response) => {
   response.sendFile(path.join(publicDir, "index.html"));
 });
+
+app.get("/admin", (_request, response) => {
+  response.sendFile(path.join(publicDir, "admin.html"));
+});

@@ -22,6 +22,7 @@ Esta version ya incluye:
 - validacion de horas ocupadas y fechas pasadas
 - disponibilidad separada por motivo de consulta
 - endurecimiento basico de seguridad para la API
+- panel administrativo con login para revisar reservas
 - configuracion segura mediante variables de entorno
 
 El formulario ya envia una solicitud real al backend y el backend puede registrar la reserva en la base de datos.
@@ -34,6 +35,23 @@ Para pasar de una maqueta visual a una aplicacion funcional se incorporaron dos 
 2. Conexion a Supabase para almacenar las reservas en PostgreSQL.
 
 Con esto, el sistema dejo de ser solo visual y paso a tener flujo completo de reserva.
+
+## Panel administrativo
+
+El sistema ahora incluye una vista administrativa protegida por login para consultar las reservas agendadas.
+
+Ruta disponible:
+
+- `/admin`
+
+Desde este panel es posible:
+
+- iniciar sesion como administrador
+- consultar reservas pendientes y confirmadas
+- actualizar el listado sin salir de la vista
+- cerrar sesion de forma segura
+
+La sesion se maneja mediante una cookie `HttpOnly` emitida por el backend.
 
 ## Reglas de reserva actuales
 
@@ -101,14 +119,17 @@ tallerAplicacionesdeInternet/
 |  |- lib/
 |  |- modules/
 |  |  |- bookings/
+|  |  |- admin/
 |  |- routes/
 |  |- app.ts
 |  |- server.ts
 |- supabase/
 |  |- bookings-schema.sql
 |- index.html
+|- admin.html
 |- styles.css
 |- main.js
+|- admin.js
 |- package.json
 |- tsconfig.json
 |- .env.example
@@ -126,6 +147,9 @@ PORT=3000
 ALLOWED_ORIGINS=http://localhost:3000
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=20
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=change-this-password
+ADMIN_SESSION_SECRET=change-this-session-secret
 SUPABASE_URL=https://tu-proyecto.supabase.co
 SUPABASE_ANON_KEY=tu-clave-anon
 SUPABASE_SERVICE_ROLE_KEY=tu-clave-service-role
@@ -139,6 +163,12 @@ Variables nuevas de seguridad:
   Ventana de tiempo del limitador de peticiones en milisegundos.
 - `RATE_LIMIT_MAX_REQUESTS`
   Numero maximo de solicitudes permitidas por ventana para la API.
+- `ADMIN_USERNAME`
+  Usuario para acceder al panel administrativo.
+- `ADMIN_PASSWORD`
+  Contrasena del administrador.
+- `ADMIN_SESSION_SECRET`
+  Clave usada para firmar la sesion del administrador.
 
 ## Configuracion de Supabase
 
@@ -198,6 +228,14 @@ http://localhost:3000
   Devuelve bloques ocupados y bloques disponibles para una fecha y servicio.
 - `POST /api/bookings`
   Registra una nueva solicitud de reserva.
+- `POST /api/admin/login`
+  Inicia sesion como administrador.
+- `POST /api/admin/logout`
+  Cierra la sesion del administrador.
+- `GET /api/admin/session`
+  Verifica si existe una sesion admin activa.
+- `GET /api/admin/bookings`
+  Devuelve las reservas agendadas. Requiere sesion admin.
 
 ## Ejemplo de payload
 
@@ -230,6 +268,8 @@ Se aplicaron buenas practicas basicas para evitar exponer informacion sensible:
 - El cuerpo JSON esta limitado para evitar cargas excesivas.
 - `service` y `petType` se validan contra listas permitidas.
 - `phone` y `notes` ahora tienen validaciones mas estrictas.
+- El panel admin requiere login y protege la consulta de reservas con sesion firmada.
+- La cookie del administrador se emite como `HttpOnly` y `SameSite=Strict`.
 
 ## Recomendaciones antes de publicar
 
@@ -237,6 +277,7 @@ Se aplicaron buenas practicas basicas para evitar exponer informacion sensible:
 - Si una llave fue expuesta por error, rotala desde Supabase.
 - Nunca uses `SUPABASE_SERVICE_ROLE_KEY` en el frontend.
 - Ajusta `ALLOWED_ORIGINS` segun tu dominio real antes de desplegar.
+- Cambia `ADMIN_USERNAME`, `ADMIN_PASSWORD` y `ADMIN_SESSION_SECRET` antes de publicar.
 - Si el proyecto crece, agrega autenticacion, autorizacion y manejo de auditoria para acciones administrativas.
 
 ## Roadmap
@@ -244,11 +285,11 @@ Se aplicaron buenas practicas basicas para evitar exponer informacion sensible:
 Siguientes mejoras sugeridas:
 
 - listado de reservas
-- panel administrativo
 - autenticacion de usuarios
 - confirmacion de horas
 - cancelacion y reprogramacion de reservas
 - disponibilidad dinamica por bloques horarios
+- gestion de estados desde el panel admin
 
 ## Autor
 
